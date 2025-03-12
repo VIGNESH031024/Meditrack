@@ -1,17 +1,20 @@
 from django.urls import path
-from .views import medicine_list, medicine_detail, inventory_list, inventory_detail,order_detail,order_list
+from .views import (
+    ProductListCreateAPIView, ProductDetailAPIView,
+    SupplierListCreateAPIView, SupplierDetailAPIView,
+    OrderListCreateAPIView, OrderDetailAPIView
+)
 
 urlpatterns = [
-    #medicine CURD API
-    path('medicines/', medicine_list, name='medicine_list'),
-    path('medicines/<int:id>/', medicine_detail, name='medicine_detail'),
+    # ✅ Product URLs
+    path('api/products/', ProductListCreateAPIView.as_view(), name='product-list'),
+    path('api/products/<int:pk>/', ProductDetailAPIView.as_view(), name='product-detail'),
 
+    # ✅ Supplier URLs
+    path('api/suppliers/', SupplierListCreateAPIView.as_view(), name='supplier-list'),
+    path('api/suppliers/<int:pk>/', SupplierDetailAPIView.as_view(), name='supplier-detail'),
 
-    path('inventory/', inventory_list, name='inventory-list'),
-    path('inventory/<int:id>/', inventory_detail, name='inventory-detail'),
-
-    path('orders/', order_list, name='order_list'),
-    path('orders/<int:pk>/', order_detail, name='order_detail'),
-
-
+    # ✅ Order URLs
+    path('api/orders/', OrderListCreateAPIView.as_view(), name='order-list'),
+    path('api/orders/<int:pk>/', OrderDetailAPIView.as_view(), name='order-detail'),
 ]

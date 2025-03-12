@@ -1,57 +1,68 @@
 from rest_framework import serializers
-from .models import User, Supplier, Medicine, Inventory, Order, Utilization, Notification, AuditLog, MedicineOrder
+from django.contrib.auth import get_user_model
+from .models import Product, Supplier, Order, OrderItem, Notification, StockAlert, SalesData
+
+# Get the custom User model
+User = get_user_model()
+
 
 # User Serializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'phone']
+        fields = ['id', 'username', 'email', 'role', 'avatar']
+
+
+# Product Serializer
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
 
 # Supplier Serializer
 class SupplierSerializer(serializers.ModelSerializer):
+    products = serializers.PrimaryKeyRelatedField(many=True, queryset=Product.objects.all())
+
     class Meta:
         model = Supplier
         fields = '__all__'
 
-# Medicine Serializer
-class MedicineSerializer(serializers.ModelSerializer):
-    supplier_name = serializers.ReadOnlyField(source='supplier.name')
+
+# Order Item Serializer
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
 
     class Meta:
-        model = Medicine
-        fields = '__all__'
+        model = OrderItem
+        fields = ['product', 'quantity', 'unit_price', 'total_price']
 
-# Inventory Serializer
-class InventorySerializer(serializers.ModelSerializer):
-    medicine_name = serializers.ReadOnlyField(source='medicine.name')
-
-    class Meta:
-        model = Inventory
-        fields = '__all__'
 
 # Order Serializer
-class MedicineOrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MedicineOrder
-        fields = '__all__'
-# Utilization Serializer
-class UtilizationSerializer(serializers.ModelSerializer):
-    medicine_name = serializers.ReadOnlyField(source='medicine.name')
+class OrderSerializer(serializers.ModelSerializer):
+    supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())  # Accepts only IDs
 
     class Meta:
-        model = Utilization
+        model = Order
         fields = '__all__'
-
 # Notification Serializer
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
 
-# Audit Log Serializer
-class AuditLogSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source='user.username')
+
+# Stock Alert Serializer
+class StockAlertSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
 
     class Meta:
-        model = AuditLog
+        model = StockAlert
+        fields = '__all__'
+
+
+# Sales Data Serializer
+class SalesDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalesData
         fields = '__all__'

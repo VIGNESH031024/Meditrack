@@ -1,106 +1,168 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-from datetime import timedelta
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from datetime import timedelta, date
+from django.utils.timezone import now
+import uuid
+
+# Default expiry date (1 year from today)
+def default_expiry_date():
+    return date.today() + timedelta(days=365)
+
 
 # Custom User Model
 class User(AbstractUser):
-    groups = models.ManyToManyField(Group, related_name="custom_user_groups", blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name="custom_user_permissions", blank=True)
+    email = models.EmailField(unique=True)
+
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="shop_user_set",  # ✅ Avoids conflicts
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="shop_user_permissions_set",  # ✅ Avoids conflicts
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.username
+
+
+# Product Model
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=255)
+    sku = models.CharField(max_length=50, unique=True)
+    barcode = models.CharField(max_length=50, unique=True)
+    batch_number = models.CharField(max_length=50)
+    expiry_date = models.DateField(default=default_expiry_date)  # ✅ Default expiry date
+    manufacturer = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.IntegerField(default=0)  # ✅ Default value
+    reorder_level = models.IntegerField(default=0)  # ✅ Default value
+    location = models.CharField(max_length=255, blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 # Supplier Model
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    contact = models.CharField(max_length=20, default="Not Provided")  # Set a default value
+    contact_person = models.CharField(max_length=255, default="Unknown Person")  # ✅ Set default
+    email = models.EmailField(default="")
 
+    phone = models.CharField(max_length=20,default="")
+    address = models.CharField(max_length=255, default="Unknown Address")
 
-    def __str__(self):
-        return self.name
-
-# Default Expiry Date
-def default_expiry_date():
-    return timezone.now().date() + timedelta(days=365)
-
-# Medicine Model
-class Medicine(models.Model):
-    CATEGORY_CHOICES = [
-        ('tablet', 'Tablet'),
-        ('syrup', 'Syrup'),
-    ]
-
-    name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    expiry_date = models.DateField(default=default_expiry_date)
-    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True)
+    products = models.ManyToManyField(Product, related_name='suppliers')
 
     def __str__(self):
         return self.name
 
-# Medicine Order Model
-class MedicineOrder(models.Model):
-    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    quantity_ordered = models.IntegerField()
-    order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, choices=[
-        ('Pending', 'Pending'),
-        ('Shipped', 'Shipped'),
-        ('Delivered', 'Delivered'),
-        ('Cancelled', 'Cancelled'),
-    ], default='Pending')
 
-    def __str__(self):
-        return f"{self.medicine.name} - {self.status}"
+# Order and OrderItem Models
+from django.db import models
 
-# Inventory Model
-class Inventory(models.Model):
-    medicine = models.OneToOneField(Medicine, on_delete=models.CASCADE)
-    available_stock = models.IntegerField()
-    minimum_stock = models.IntegerField()
-    last_updated = models.DateTimeField(auto_now=True)
+from django.db import models
 
-    def __str__(self):
-        return f"{self.medicine.name} - {self.available_stock} units"
-
-# Order Model
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Completed', 'Completed'),
-        ('Cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled')
     ]
-    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-    order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('partial', 'Partial')
+    ]
+
+    order_number = models.CharField(
+        max_length=20, unique=True, editable=False, default="TEMP0001"
+    )
+    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(default=now) 
+    updated_at = models.DateTimeField(auto_now=True)
+    expected_delivery = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.order_number == "TEMP0001" or not self.order_number:
+            last_order = Order.objects.order_by("-id").first()
+            next_order_number = f"ORD{(last_order.id + 1) if last_order else 1:04d}"
+            self.order_number = next_order_number
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Order {self.id} - {self.medicine.name}"
+        return self.order_number
 
-# Utilization Model
-class Utilization(models.Model):
-    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
-    quantity_used = models.IntegerField()
-    usage_date = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.medicine.name} - {self.quantity_used} used"
+class OrderItem(models.Model):
+
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="items"
+    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)  # ✅ Default value
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
 
 # Notification Model
 class Notification(models.Model):
+    TYPE_CHOICES = [
+        ("low-stock", "Low Stock"),
+        ("expiry", "Expiry"),
+        ("order", "Order"),
+        ("delivery", "Delivery"),
+        ("system", "System"),
+    ]
+    type = models.CharField(
+        max_length=50, choices=TYPE_CHOICES, default="system"
+    )  # ✅ Meaningful default
     message = models.TextField()
-    status = models.CharField(max_length=10, choices=[('Read', 'Read'), ('Unread', 'Unread')], default='Unread')
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    link = models.URLField(blank=True, null=True)
+
+
+# Dashboard Stats Model
+class DashboardStats(models.Model):
+    total_products = models.IntegerField(default=0)  # ✅ Default value
+    low_stock_items = models.IntegerField(default=0)  # ✅ Default value
+    expiring_items = models.IntegerField(default=0)  # ✅ Default value
+    pending_orders = models.IntegerField(default=0)  # ✅ Default value
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.message[:50]
 
-# Audit Log Model
-class AuditLog(models.Model):
-    action = models.CharField(max_length=20)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+# Sales Data Model
+class SalesData(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity_sold = models.IntegerField(default=0)  # ✅ Default value
+    revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user} - {self.action} at {self.timestamp}"
+        return f"{self.product.name} - {self.quantity_sold} sold"
+
+
+# Stock Alert Model
+class StockAlert(models.Model):
+    ALERT_TYPES = [
+        ("low-stock", "Low Stock"),
+        ("expiry", "Expiry Warning"),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
+    days_to_expiry = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.alert_type}"

@@ -35,13 +35,13 @@ class Product(models.Model):
     category = models.CharField(max_length=255)
     sku = models.CharField(max_length=50, unique=True)
     barcode = models.CharField(max_length=50, unique=True)
-    batch_number = models.CharField(max_length=50)
-    expiry_date = models.DateField(default=default_expiry_date)  # ✅ Default expiry date
+    batchNumber = models.CharField(max_length=50)
+    expiryDate = models.DateField(default=default_expiry_date)  # ✅ Default expiry date
     manufacturer = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField(default=0)  # ✅ Default value
-    reorder_level = models.IntegerField(default=0)  # ✅ Default value
+    reorderLevel = models.IntegerField(default=0)  # ✅ Default value
     location = models.CharField(max_length=255, blank=True, null=True)
     image = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

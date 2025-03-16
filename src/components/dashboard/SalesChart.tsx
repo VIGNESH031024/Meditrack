@@ -60,7 +60,7 @@ const SalesChart: React.FC<SalesChartProps> = ({ salesData }) => {
     labels: salesData.map((data) => format(parseISO(data.date), 'MMM d')),
     datasets: [
       {
-        label: 'Revenue ($)',
+        label: 'Revenue (₹)',
         data: salesData.map((data) => data.revenue),
         borderColor: 'rgb(79, 70, 229)',
         backgroundColor: 'rgba(79, 70, 229, 0.5)',

@@ -34,7 +34,7 @@ const TopSellingProducts: React.FC<TopSellingProductsProps> = ({ topProducts }) 
             
             <div className="text-right">
               <p className="text-sm font-medium text-gray-800">{soldUnits} units</p>
-              <p className="text-xs text-gray-500">${(product.price * soldUnits).toFixed(2)}</p>
+              <p className="text-xs text-gray-500">₹{(product.price * soldUnits).toFixed(2)}</p>
             </div>
           </div>
         ))}

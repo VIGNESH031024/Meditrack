@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // In a real app, this would be an API call
       // For demo purposes, we'll use mock data
-      if (email === 'john@meditrack.com' && password === 'password') {
+      if (email === 'admin@meditrack.com' && password === 'password') {
         setUser(currentUser);
         localStorage.setItem('meditrack_user', JSON.stringify(currentUser));
         setIsLoading(false);

@@ -4,8 +4,8 @@ import { addDays, format, subDays } from 'date-fns';
 // Mock Users
 export const currentUser: User = {
   id: '1',
-  name: 'John Doe',
-  email: 'john@meditrack.com',
+  name: 'Admin',
+  email: 'admin@meditrack.com',
   role: 'admin',
   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 };

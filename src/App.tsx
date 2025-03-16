@@ -14,6 +14,8 @@ import InventoryDetail from './pages/InventoryDetail';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Reports from './pages/Reports';
+import Transaction from "./pages/transaction";  
+
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,6 +55,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="inventory/:id" element={<InventoryDetail />} />
+              <Route path="transaction" element={<Transaction />} />
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="reports" element={<Reports />} />

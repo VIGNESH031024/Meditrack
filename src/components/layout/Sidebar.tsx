@@ -18,6 +18,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Inventory', path: '/inventory', icon: <Package size={20} /> },
+    { name: "Transaction", path: "/transaction", icon: <ShoppingCart size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
     { name: 'Suppliers', path: '/suppliers', icon: <Truck size={20} /> },
     { name: 'Reports', path: '/reports', icon: <BarChart3 size={20} /> },

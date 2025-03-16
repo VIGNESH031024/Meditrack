@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const LoginForm: React.FC = () => {
   const { login } = useAuth();
-  const [email, setEmail] = useState('john@meditrack.com');
+  const [email, setEmail] = useState('admin@meditrack.com');
   const [password, setPassword] = useState('password');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

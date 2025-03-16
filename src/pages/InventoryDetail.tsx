@@ -13,13 +13,38 @@ import {
 import ProductForm from '../components/inventory/ProductForm';
 import { getProductById } from '../data/mockData';
 import { format, parseISO, differenceInDays } from 'date-fns';
+import { useEffect } from 'react';
+import api from "../api/axiosInstance"; 
 
-const InventoryDetail: React.FC = () => {
+
+
+  const InventoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   
-  const product = getProductById(id || '');
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+  if (!id) return;
+
+  api.get(`products/${id}/`)
+    .then((response) => {
+      setProduct(response.data);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error fetching product:", error);
+      setError("Failed to load product details.");
+      setLoading(false);
+    });
+}, [id]);
+
+if (loading) return <p>Loading...</p>;
+if (error || !product) return <p className="text-red-500">Product not found.</p>;
+
   
   if (!product) {
     return (
@@ -112,7 +137,7 @@ const InventoryDetail: React.FC = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-sm text-gray-500">{product.category}</span>
-                    <span className="text-lg font-bold text-indigo-600">${product.price.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-indigo-600">₹{product.price}</span>
                   </div>
                   
                   <p className="text-gray-600 mb-4">{product.description}</p>
@@ -198,11 +223,11 @@ const InventoryDetail: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Selling Price</span>
-                        <span className="text-sm font-medium">${product.price.toFixed(2)}</span>
+                        <span className="text-sm font-medium">₹{product.price}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Cost Price</span>
-                        <span className="text-sm font-medium">${product.costPrice.toFixed(2)}</span>
+                        <span className="text-sm font-medium">₹{product.costPrice}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Profit Margin</span>

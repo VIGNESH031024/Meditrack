@@ -28,24 +28,59 @@ class User(AbstractUser):
         return self.username
 
 
-# Product Model
+import qrcode
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.db import models
+from django.utils.timezone import now
+
+def default_expiry_date():
+    return now().date().replace(year=now().year + 1)
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     category = models.CharField(max_length=255)
     sku = models.CharField(max_length=50, unique=True)
-    barcode = models.CharField(max_length=50, unique=True)
+    qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)  # Changed to QR code
     batchNumber = models.CharField(max_length=50)
-    expiryDate = models.DateField(default=default_expiry_date)  # ✅ Default expiry date
+    expiryDate = models.DateField(default=default_expiry_date)
     manufacturer = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.IntegerField(default=0)  # ✅ Default value
-    reorderLevel = models.IntegerField(default=0)  # ✅ Default value
+    quantity = models.IntegerField(default=0)
+    reorderLevel = models.IntegerField(default=0)
     location = models.CharField(max_length=255, blank=True, null=True)
     image = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def generate_qrcode(self):
+        """Generate QR code based on SKU and save as an image."""
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(self.sku)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        filename = f"qrcode_{self.sku}.png"
+        self.qr_code.save(filename, ContentFile(buffer.getvalue()), save=False)
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.generate_qrcode()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.sku})"
+
+
 
 
 # Supplier Model

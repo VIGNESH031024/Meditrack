@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
 from .models import Product, Supplier, Order
 from .serializers import ProductSerializer, SupplierSerializer, OrderSerializer
@@ -145,6 +146,8 @@ class OrderListCreateAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
 class OrderDetailAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -165,3 +168,74 @@ class OrderDetailAPIView(APIView):
         order = get_object_or_404(Order, pk=pk)
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def get_product_by_sku(request):
+    if request.method != "GET":  # ✅ Allow only GET requests
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    sku = request.GET.get("sku")
+    
+    if not sku:
+        return JsonResponse({"error": "SKU parameter is required"}, status=400)
+
+    try:
+        product = get_object_or_404(Product, sku=sku)  # ✅ Fetch product by SKU
+
+        data = {
+            "id": product.id,
+            "name": product.name,
+            "sku": product.sku,
+            "price": product.price,
+            "quantity": product.quantity,
+            "category": product.category.name if hasattr(product.category, "name") else product.category,  # ✅ Fix category attribute
+            "manufacturer": product.manufacturer.name if hasattr(product.manufacturer, "name") else product.manufacturer
+        }
+
+        return JsonResponse(data, safe=False, status=200)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+    
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import JsonResponse
+
+@csrf_exempt
+def sell_medicine(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        medicines = data.get("medicines", [])
+
+        if not medicines:
+            return JsonResponse({"error": "No medicines provided"}, status=400)
+
+        for med in medicines:
+            sku = med.get("sku")
+            quantity = med.get("quantity", 1)
+
+            product = Product.objects.filter(sku=sku).first()
+            if not product:
+                return JsonResponse({"error": f"Product with SKU {sku} not found"}, status=404)
+
+            if product.quantity < quantity:
+                return JsonResponse({
+                    "error": f"Not enough stock for {product.name}. Available: {product.quantity}, Requested: {quantity}"
+                }, status=400)
+
+        # ✅ If all checks pass, reduce stock
+        for med in medicines:
+            sku = med.get("sku")
+            quantity = med.get("quantity", 1)
+            product = Product.objects.filter(sku=sku).first()
+            product.quantity -= quantity
+            product.save()
+
+        return JsonResponse({"message": "Medicines sold and stock updated successfully!"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

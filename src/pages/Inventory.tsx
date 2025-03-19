@@ -97,7 +97,9 @@ const Inventory: React.FC = () => {
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
             <div className="flex items-center space-x-2">
               <Filter size={18} className="text-gray-400" />
+              <label htmlFor="categoryFilter" className="sr-only">Category Filter</label>
               <select
+                id="categoryFilter"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -111,7 +113,8 @@ const Inventory: React.FC = () => {
               </select>
             </div>
 
-            <select value={stockFilter}
+            <label htmlFor="stockFilter" className="sr-only">Stock Filter</label>
+            <select id="stockFilter" value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
               <option value="">All Stock Levels</option>

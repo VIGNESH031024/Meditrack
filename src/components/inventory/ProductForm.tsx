@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../../types';
+import api from "../../api/axiosInstance"; // Import Axios instance
 
 interface ProductFormProps {
   product?: Product;
@@ -18,12 +19,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       description: '',
       category: '',
       sku: '',
-      barcode: '',
       batchNumber: '',
       expiryDate: '',
       manufacturer: '',
       price: 0,
-      costPrice: 0,
+      cost_price: 0, // Change to cost_price
       quantity: 0,
       reorderLevel: 0,
       location: '',
@@ -37,15 +37,38 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'price' || name === 'costPrice' || name === 'quantity' || name === 'reorderLevel'
-        ? parseFloat(value)
-        : value,
+      [name]:
+        name === 'price' || name === 'cost_price' || name === 'quantity' || name === 'reorderLevel'
+          ? parseFloat(value) || 0
+          : value,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    try {
+      await api.post('/products/', formData);
+      alert('Product added successfully!');
+      onSubmit(formData);
+      setFormData({
+        name: '',
+        description: '',
+        category: '',
+        sku: '',
+        batchNumber: '',
+        expiryDate: '',
+        manufacturer: '',
+        price: 0,
+        cost_price: 0, // Change to cost_price
+        quantity: 0,
+        reorderLevel: 0,
+        location: '',
+        image: '',
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Error adding product');
+    }
   };
 
   return (
@@ -65,7 +88,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">
             Category *
@@ -79,7 +102,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">Select Category</option>
-            <option value="Pain Relief">Pain Relief</option>
+            <option value="Pain Reliever">Pain Reliever</option>
             <option value="Antibiotics">Antibiotics</option>
             <option value="Diabetes">Diabetes</option>
             <option value="Cardiovascular">Cardiovascular</option>
@@ -88,7 +111,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <option value="Skincare">Skincare</option>
           </select>
         </div>
-        
+
         <div className="md:col-span-2">
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
             Description
@@ -102,7 +125,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="sku" className="block text-sm font-medium text-gray-700">
             SKU *
@@ -117,21 +140,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
-        <div>
-          <label htmlFor="barcode" className="block text-sm font-medium text-gray-700">
-            Barcode
-          </label>
-          <input
-            type="text"
-            id="barcode"
-            name="barcode"
-            value={formData.barcode}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-        
+
         <div>
           <label htmlFor="batchNumber" className="block text-sm font-medium text-gray-700">
             Batch Number *
@@ -146,7 +155,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700">
             Expiry Date *
@@ -161,7 +170,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="manufacturer" className="block text-sm font-medium text-gray-700">
             Manufacturer
@@ -175,7 +184,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="location" className="block text-sm font-medium text-gray-700">
             Storage Location
@@ -189,7 +198,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700">
             Selling Price *
@@ -211,9 +220,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
         </div>
-        
+
         <div>
-          <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="cost_price" className="block text-sm font-medium text-gray-700">
             Cost Price *
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
@@ -222,9 +231,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </div>
             <input
               type="number"
-              id="costPrice"
-              name="costPrice"
-              value={formData.costPrice}
+              id="cost_price"
+              name="cost_price"
+              value={formData.cost_price}
               onChange={handleChange}
               required
               min="0"
@@ -233,7 +242,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
         </div>
-        
+
         <div>
           <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
             Quantity *
@@ -249,7 +258,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div>
           <label htmlFor="reorderLevel" className="block text-sm font-medium text-gray-700">
             Reorder Level *
@@ -265,7 +274,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
         </div>
-        
+
         <div className="md:col-span-2">
           <label htmlFor="image" className="block text-sm font-medium text-gray-700">
             Image URL
@@ -280,7 +289,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           />
         </div>
       </div>
-      
+
       <div className="flex justify-end space-x-3">
         <button
           type="button"

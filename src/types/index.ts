@@ -12,12 +12,12 @@ export interface Product {
   description: string;
   category: string;
   sku: string;
-  barcode: string;
+  qrcode: string;
   batchNumber: string;
   expiryDate: string;
   manufacturer: string;
   price: number;
-  costPrice: number;
+  cost_price: number;
   quantity: number;
   reorderLevel: number;
   location: string;

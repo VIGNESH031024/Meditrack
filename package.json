@@ -17,12 +17,17 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
     "lucide-react": "^0.344.0",
+    "quagga": "^0.12.1",
     "react": "^18.3.1",
+    "react-barcode-reader": "^0.0.2",
+    "react-barcode-scanner": "^3.2.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
+    "react-qr-barcode-scanner": "^2.0.0",
     "react-qr-scanner": "^1.0.0-alpha.11",
     "react-router-dom": "^6.22.1",
-    "react-toastify": "^10.0.4"
+    "react-toastify": "^10.0.4",
+    "react-webcam": "^7.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

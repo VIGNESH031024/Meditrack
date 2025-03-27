@@ -107,7 +107,10 @@ export default function Transaction() {
       setCart([]);
       setGooglePayLink(null);
     } catch (error) {
-      toast.error("Failed to complete transaction");
+      console.error("Transaction error:", error.response?.data || error.message);
+      toast.error(
+        error.response?.data?.error || "Failed to complete transaction"
+      );
     } finally {
       setIsLoading(false);
     }

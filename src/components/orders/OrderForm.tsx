@@ -57,8 +57,8 @@ const OrderForm: React.FC<OrderFormProps> = ({
       const newItem: OrderItem = {
         product,
         quantity: 1,
-        unitPrice: product.costPrice,
-        totalPrice: product.costPrice,
+        unitPrice: product.cost_price,
+        totalPrice: product.cost_price,
       };
       setOrderItems([...orderItems, newItem]);
     }
@@ -68,21 +68,21 @@ const OrderForm: React.FC<OrderFormProps> = ({
     setOrderItems(orderItems.filter((_, i) => i !== index));
   };
   
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const updatedItems = [...orderItems];
     const item = { ...updatedItems[index] };
     
     if (field === 'product') {
       const product = availableProducts.find(p => p.id === value) || item.product;
       item.product = product;
-      item.unitPrice = product.costPrice;
-      item.totalPrice = product.costPrice * item.quantity;
+      item.unitPrice = product.cost_price;
+      item.totalPrice = product.cost_price * item.quantity;
     } else if (field === 'quantity') {
-      const quantity = parseInt(value) || 0;
+      const quantity = parseInt(value.toString()) || 0;
       item.quantity = quantity;
       item.totalPrice = item.unitPrice * quantity;
     } else if (field === 'unitPrice') {
-      const unitPrice = parseFloat(value) || 0;
+      const unitPrice = parseFloat(value.toString()) || 0;
       item.unitPrice = unitPrice;
       item.totalPrice = unitPrice * item.quantity;
     }
@@ -195,6 +195,7 @@ const OrderForm: React.FC<OrderFormProps> = ({
                         value={item.product.id}
                         onChange={(e) => handleItemChange(index, 'product', e.target.value)}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        aria-label={`Select product for item ${index + 1}`}
                       >
                         {availableProducts.map(product => (
                           <option key={product.id} value={product.id}>
@@ -210,6 +211,7 @@ const OrderForm: React.FC<OrderFormProps> = ({
                         value={item.quantity}
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="Enter quantity"
                       />
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -224,6 +226,8 @@ const OrderForm: React.FC<OrderFormProps> = ({
                           value={item.unitPrice}
                           onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
                           className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          placeholder="Enter unit price"
+                          title="Unit Price"
                         />
                       </div>
                     </td>
@@ -235,6 +239,8 @@ const OrderForm: React.FC<OrderFormProps> = ({
                         type="button"
                         onClick={() => handleRemoveItem(index)}
                         className="text-red-600 hover:text-red-800"
+                        title="Remove item"
+                        aria-label="Remove item"
                       >
                         <X size={18} />
                       </button>

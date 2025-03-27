@@ -11,8 +11,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import ProductForm from '../components/inventory/ProductForm';
-import { getProductById } from '../data/mockData';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { parseISO, differenceInDays } from 'date-fns';
 import { useEffect } from 'react';
 import api from "../api/axiosInstance"; 
 
@@ -22,6 +21,29 @@ import api from "../api/axiosInstance";
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Define the Product type
+  type Product = {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    price: number;
+    costPrice: number;
+    cost_price: number; // Added property
+    quantity: number;
+    reorderLevel: number;
+    expiryDate: string;
+    sku: string;
+    barcode: string;
+    qrcode: string; // Added property
+    batchNumber: string;
+    manufacturer: string;
+    location: string;
+    image?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,6 +110,7 @@ if (error || !product) return <p className="text-red-500">Product not found.</p>
           <button
             onClick={() => navigate('/inventory')}
             className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600"
+            title="Back to Inventory"
           >
             <ArrowLeft size={20} />
           </button>

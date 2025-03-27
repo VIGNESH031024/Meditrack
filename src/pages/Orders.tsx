@@ -121,7 +121,9 @@ const Orders: React.FC = () => {
 
           <div className="flex items-center space-x-2">
             <Filter size={18} className="text-gray-400" />
+            <label htmlFor="statusFilter" className="sr-only">Filter by Status</label>
             <select
+              id="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"

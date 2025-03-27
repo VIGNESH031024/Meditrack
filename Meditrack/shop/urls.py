@@ -16,5 +16,8 @@ urlpatterns = [
     path('api/orders/<int:pk>/', OrderDetailAPIView.as_view(), name='order-detail'),
     
     # ✅ Sell medicine URLs
-    path("api/sell-medicine/", sell_medicine, name="sell_medicine")
+    path("api/sell-medicine/", sell_medicine, name="sell_medicine"),
+    
+    # hardware stock in URLs
+     path('api/update_stock/', read_rfid_and_update_stock, name='read_rfid_update_stock'),
 ]

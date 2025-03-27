@@ -4,8 +4,9 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.utils import timezone
 
-from .models import Product, Supplier, Order
+from .models import Product, Supplier, Order, OrderItem
 from .serializers import ProductSerializer, SupplierSerializer, OrderSerializer
 
 
@@ -206,7 +207,8 @@ from django.http import JsonResponse
 def sell_medicine(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
-
+    data = json.loads(request.body)
+    print(data)
     try:
         data = json.loads(request.body)
         medicines = data.get("medicines", [])
@@ -217,25 +219,75 @@ def sell_medicine(request):
         for med in medicines:
             sku = med.get("sku")
             quantity = med.get("quantity", 1)
+            print(sku,quantity,"From for loop")
 
             product = Product.objects.filter(sku=sku).first()
+            print(med.get("quantity"))
+            
             if not product:
                 return JsonResponse({"error": f"Product with SKU {sku} not found"}, status=404)
-
+            
+            print("hiiii1")
             if product.quantity < quantity:
+                print("hiivye")
                 return JsonResponse({
                     "error": f"Not enough stock for {product.name}. Available: {product.quantity}, Requested: {quantity}"
                 }, status=400)
+                
 
-        # ✅ If all checks pass, reduce stock
         for med in medicines:
             sku = med.get("sku")
             quantity = med.get("quantity", 1)
             product = Product.objects.filter(sku=sku).first()
             product.quantity -= quantity
             product.save()
-
+        
+        print("hii2")
         return JsonResponse({"message": "Medicines sold and stock updated successfully!"}, status=200)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def read_rfid_and_update_stock(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rfid_tag = data.get('sku')
+            quantity = data.get('quantity', 1)
+            supplier_id = data.get('supplier_id')  # optional if you want to link
+            print(rfid_tag)
+            # Assuming RFID tag is mapped to a product SKU
+            product = Product.objects.filter(sku=rfid_tag).first()
+            if not product:
+                return JsonResponse({'error': 'Product with this RFID tag not found'}, status=404)
+
+            # Update product stock
+            product.quantity += quantity
+            product.save()
+
+            # Optionally, create an order entry (if desired)
+            if supplier_id:
+                supplier = get_object_or_404(Supplier, id=supplier_id)
+                order = Order.objects.create(
+                    supplier=supplier,
+                    status='approved',
+                    total_amount=product.cost_price * quantity,
+                    payment_status='paid',
+                    expected_delivery=timezone.now().date()
+                )
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                    unit_price=product.cost_price,
+                    total_price=product.cost_price * quantity
+                )
+
+            return JsonResponse({'success': True, 'message': 'Stock updated successfully.'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)

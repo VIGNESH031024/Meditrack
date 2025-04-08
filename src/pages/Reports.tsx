@@ -60,7 +60,7 @@ const Reports: React.FC = () => {
     labels: salesData.map((data) => format(parseISO(data.date), 'MMM d')),
     datasets: [
       {
-        label: 'Revenue ($)',
+        label: 'Revenue (₹)',
         data: salesData.map((data) => data.revenue),
         backgroundColor: 'rgba(79, 70, 229, 0.6)',
       },

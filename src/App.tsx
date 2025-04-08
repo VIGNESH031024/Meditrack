@@ -14,7 +14,9 @@ import InventoryDetail from './pages/InventoryDetail';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Reports from './pages/Reports';
-import Transaction from "./pages/transaction";  
+import Transaction from "./pages/transaction"; 
+import Settings from "./pages/Settings";
+import Suppliers from './pages/Supplier';
 
 
 // Protected route component
@@ -59,9 +61,9 @@ function App() {
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="reports" element={<Reports />} />
-              <Route path="suppliers" element={<div>Suppliers Page</div>} />
+              <Route path="suppliers" element={<Suppliers/>} />
               <Route path="users" element={<div>Users Page</div>} />
-              <Route path="settings" element={<div>Settings Page</div>} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
         </Router>

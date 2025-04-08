@@ -8,7 +8,8 @@ import {
   Users, 
   Settings, 
   LogOut,
-  Truck
+  Truck,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,7 +19,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Inventory', path: '/inventory', icon: <Package size={20} /> },
-    { name: "Transaction", path: "/transaction", icon: <ShoppingCart size={20} /> },
+    { name: "Transaction", path: "/transaction", icon: <Activity size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
     { name: 'Suppliers', path: '/suppliers', icon: <Truck size={20} /> },
     { name: 'Reports', path: '/reports', icon: <BarChart3 size={20} /> },
@@ -35,8 +36,8 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
       
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-1">
+      <nav className="flex-1">
+        <ul className="space">
           {navItems.map((item) => (
             <li key={item.name}>
               <NavLink

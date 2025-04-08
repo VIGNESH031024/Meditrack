@@ -23,6 +23,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <button
           onClick={toggleSidebar}
           className="mr-4 text-gray-600 md:hidden"
+          title="Toggle Sidebar"
         >
           <Menu size={24} />
         </button>

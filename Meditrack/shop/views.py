@@ -4,13 +4,53 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.db import models
 from django.utils import timezone
 
 from .models import Product, Supplier, Order, OrderItem
 from .serializers import ProductSerializer, SupplierSerializer, OrderSerializer
 
+class DashboardStatsAPIView(APIView):
+    permission_classes = [AllowAny]
 
-# ✅ CRUD API for Product
+    def get(self, request):
+        # Calculate total products
+        total_products = Product.objects.count()
+
+        # Get low stock items (e.g., items with quantity < 10)
+        low_stock_items = Product.objects.filter(quantity__lt=10).count()
+
+        # Get expiring soon items (e.g., items expiring within 30 days)
+        expiring_items = Product.objects.filter(expiryDate__lte=timezone.now() + timezone.timedelta(days=30)).count()
+
+        # Get pending orders (e.g., orders that are not completed)
+        pending_orders = Order.objects.filter(status="pending").count()
+
+        data = {
+            "totalProducts": total_products,
+            "lowStockItems": low_stock_items,
+            "expiringItems": expiring_items,
+            "pendingOrders": pending_orders,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+# recent orders API for dashboard
+
+class RecentOrdersView(APIView):
+    def get(self, request):
+        try:
+            recent_orders = Order.objects.order_by('-created_at')[:10]  # Fetch latest 10 orders
+            serializer = OrderSerializer(recent_orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+        
+
+        
+        
 class ProductListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -202,13 +242,13 @@ def get_product_by_sku(request):
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
+from .models import Product, SalesData
 
 @csrf_exempt
 def sell_medicine(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
-    data = json.loads(request.body)
-    print(data)
+
     try:
         data = json.loads(request.body)
         medicines = data.get("medicines", [])
@@ -216,37 +256,42 @@ def sell_medicine(request):
         if not medicines:
             return JsonResponse({"error": "No medicines provided"}, status=400)
 
+        # First loop: validation
         for med in medicines:
             sku = med.get("sku")
-            quantity = med.get("quantity", 1)
-            print(sku,quantity,"From for loop")
+            quantity = int(med.get("quantity", 1))
 
             product = Product.objects.filter(sku=sku).first()
-            print(med.get("quantity"))
-            
+
             if not product:
                 return JsonResponse({"error": f"Product with SKU {sku} not found"}, status=404)
-            
-            print("hiiii1")
+
             if product.quantity < quantity:
-                print("hiivye")
                 return JsonResponse({
                     "error": f"Not enough stock for {product.name}. Available: {product.quantity}, Requested: {quantity}"
                 }, status=400)
-                
 
+        # Second loop: process sale & save to SalesData
         for med in medicines:
             sku = med.get("sku")
-            quantity = med.get("quantity", 1)
-            product = Product.objects.filter(sku=sku).first()
+            quantity = int(med.get("quantity", 1))
+            product = Product.objects.get(sku=sku)
+
             product.quantity -= quantity
             product.save()
-        
-        print("hii2")
+
+            revenue = quantity * float(product.price)
+            SalesData.objects.create(
+                product=product,
+                quantity_sold=quantity,
+                revenue=revenue
+            )
+
         return JsonResponse({"message": "Medicines sold and stock updated successfully!"}, status=200)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 
 @csrf_exempt
@@ -291,3 +336,144 @@ def read_rfid_and_update_stock(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from datetime import timedelta, date
+from .models import Product
+from .serializers import StockAlertSerializer
+from .models import StockAlert  # Optional: if you're using a separate model
+
+class StockAlertsView(APIView):
+    def get(self, request):
+        today = date.today()
+        expiry_threshold = today + timedelta(days=90)
+
+        # Get products that are either low in stock or expiring soon
+        low_stock_products = Product.objects.filter(quantity__lte=models.F('reorderLevel'))
+        expiring_soon_products = Product.objects.filter(expiryDate__lte=expiry_threshold)
+
+        # Combine both querysets using union (distinct results)
+        alert_products = (low_stock_products | expiring_soon_products).distinct()
+
+        # Construct custom alert response with expiry and stock info
+        alerts = []
+        for product in alert_products:
+            alert = {
+                'id': product.id,
+                'name': product.name,
+                'quantity': product.quantity,
+                'reorderLevel': product.reorderLevel,
+                'expiryDate': product.expiryDate,
+                'daysToExpiry': (product.expiryDate - today).days,
+                'isLowStock': product.quantity <= product.reorderLevel,
+                'isExpiringSoon': product.expiryDate <= expiry_threshold,
+            }
+            alerts.append(alert)
+
+        return Response(alerts, status=status.HTTP_200_OK)
+
+
+
+from rest_framework import viewsets, generics
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.db.models import Sum
+from .models import SalesData
+from .serializers import SalesDataSerializer
+from datetime import timedelta
+from django.utils import timezone
+
+
+# 1. Generic CRUD ViewSet
+class SalesDataViewSet(viewsets.ModelViewSet):
+    queryset = SalesData.objects.all().order_by('-date')
+    serializer_class = SalesDataSerializer
+
+
+# 2. Sales overview grouped by date for chart
+@api_view(['GET'])
+def sales_chart_data(request):
+    today = timezone.now().date()
+    start_date = today - timedelta(days=7)  # Last 7 days
+
+    queryset = (
+        SalesData.objects
+        .filter(date__gte=start_date)
+        .values('date')
+        .annotate(
+            revenue=Sum('revenue'),
+            units=Sum('quantity_sold')
+        )
+        .order_by('date')
+    )
+
+    return Response(queryset)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Product, SalesData
+
+@api_view(['POST'])
+def record_sale(request):
+    try:
+        product_id = request.data.get('product_id')
+        quantity = int(request.data.get('quantity', 0))
+
+        product = Product.objects.get(id=product_id)
+
+        if quantity <= 0:
+            return Response({'error': 'Invalid quantity'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if quantity > product.quantity:
+            return Response({'error': 'Not enough stock'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Calculate revenue and update stock
+        revenue = quantity * float(product.price)
+        product.quantity -= quantity
+        product.save()
+
+        # Save to SalesData
+        SalesData.objects.create(
+            product=product,
+            quantity_sold=quantity,
+            revenue=revenue
+        )
+
+        return Response({'message': 'Sale recorded successfully'}, status=status.HTTP_201_CREATED)
+
+    except Product.DoesNotExist:
+        return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+def top_selling_products(request):
+    # Step 1: Aggregate total quantity sold per product
+    top_selling = (
+        SalesData.objects
+        .values('product')  # Group by product
+        .annotate(soldUnits=Sum('quantity_sold'))  # Sum up units sold
+        .order_by('-soldUnits')[:5]  # Top 5
+    )
+
+    # Step 2: Construct results
+    result = []
+    for item in top_selling:
+        try:
+            product = Product.objects.get(id=item['product'])
+            result.append({
+                'product': ProductSerializer(product).data,
+                'soldUnits': item['soldUnits']
+            })
+        except Product.DoesNotExist:
+            continue
+
+    return Response(result, status=status.HTTP_200_OK)

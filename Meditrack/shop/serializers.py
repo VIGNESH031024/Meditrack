@@ -66,3 +66,5 @@ class SalesDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesData
         fields = '__all__'
+
+

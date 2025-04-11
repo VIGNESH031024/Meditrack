@@ -9,7 +9,8 @@ import {
   Settings, 
   LogOut,
   Truck,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -31,7 +32,7 @@ const Sidebar: React.FC = () => {
     <div className="h-screen w-64 bg-indigo-800 text-white flex flex-col">
       <div className="p-5 border-b border-indigo-700">
         <div className="flex items-center space-x-2">
-          <Package size={24} className="text-white" />
+          <Pill size={24} className="text-white" />
           <h1 className="text-xl font-bold">MediTrack+</h1>
         </div>
       </div>

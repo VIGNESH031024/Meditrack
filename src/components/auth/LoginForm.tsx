@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package } from 'lucide-react';
+import {  Pill } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginForm: React.FC = () => {
@@ -33,7 +33,7 @@ const LoginForm: React.FC = () => {
         <div>
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-full bg-indigo-600 flex items-center justify-center">
-              <Package size={32} className="text-white" />
+              <Pill size={32} className="text-white" />
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -96,7 +96,7 @@ const LoginForm: React.FC = () => {
           
           <div className="text-sm text-center">
             <p className="text-gray-600">
-              Demo credentials: john@meditrack.com / password
+              credentials: admin@meditrack.com / password
             </p>
           </div>
         </form>

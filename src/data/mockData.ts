@@ -7,7 +7,7 @@ export const currentUser: User = {
   name: 'Admin',
   email: 'admin@meditrack.com',
   role: 'admin',
-  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  avatar: 'https://www.shutterstock.com/image-vector/young-smiling-man-avatar-brown-600nw-2261401207.jpg',
 };
 
 export const users: User[] = [
@@ -17,14 +17,14 @@ export const users: User[] = [
     name: 'Jane Smith',
     email: 'jane@meditrack.com',
     role: 'staff',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    avatar: 'https://www.shutterstock.com/image-vector/young-smiling-man-avatar-brown-600nw-2261401207.jpg',
   },
   {
     id: '3',
     name: 'Robert Johnson',
     email: 'robert@meditrack.com',
     role: 'staff',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    avatar: 'https://www.shutterstock.com/image-vector/young-smiling-man-avatar-brown-600nw-2261401207.jpg',
   },
 ];
 
@@ -55,7 +55,6 @@ export const products: Product[] = [
     description: 'Antibiotic medication',
     category: 'Antibiotics',
     sku: 'AB-002',
-    barcode: '8901234567891',
     batchNumber: 'BT2023-002',
     expiryDate: format(addDays(new Date(), 180), 'yyyy-MM-dd'),
     manufacturer: 'PharmaCorp',

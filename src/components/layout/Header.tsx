@@ -3,6 +3,7 @@ import { Bell, Search, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationDropdown from '../notifications/NotificationDropdown';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -39,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           />
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-4">
         <div className="relative">
           <button
@@ -55,19 +56,25 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           </button>
           {showNotifications && <NotificationDropdown />}
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="hidden md:block">
             <p className="text-sm font-medium text-gray-700">{user?.name}</p>
             <p className="text-xs text-gray-500">{user?.role}</p>
           </div>
-          <div className="h-10 w-10 rounded-full overflow-hidden">
-            <img
-              src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
-              alt={user?.name || 'User'}
-              className="h-full w-full object-cover"
-            />
-          </div>
+
+          {/* ✅ Avatar wrapped in Link */}
+          <Link to = "/users">
+            <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition">
+              <img
+                src={
+                  'https://www.shutterstock.com/image-vector/young-smiling-man-avatar-brown-600nw-2261401207.jpg'
+                }   
+                alt={user?.name || 'User'}
+                className="h-full w-full object-cover"
+              />
+             </div>
+          </Link>
         </div>
       </div>
     </header>

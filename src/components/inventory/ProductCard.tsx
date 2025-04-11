@@ -9,12 +9,15 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isLowStock = product.quantity <= product.reorderLevel;
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="h-48 overflow-hidden relative">
         <img
-          src={product.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'}
+          src={
+            product.image ||
+            'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+          }
           alt={product.name}
           className="w-full h-full object-cover"
         />
@@ -25,7 +28,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         )}
       </div>
-      
+
       <div className="p-4">
         <div className="flex justify-between items-start">
           <div>
@@ -34,7 +37,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
           <span className="text-lg font-bold text-indigo-600">₹{product.price}</span>
         </div>
-        
+
         <div className="mt-4 flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">
@@ -48,12 +51,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <p className={`text-sm ${isLowStock ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
               {product.quantity} in stock
             </p>
-            <p className="text-xs text-gray-500">
-              Reorder at {product.reorderLevel}
-            </p>
+            <p className="text-xs text-gray-500">Reorder at {product.reorderLevel}</p>
           </div>
         </div>
-        
+
         <Link
           to={`/inventory/${product.id}`}
           className="mt-4 block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition duration-200"

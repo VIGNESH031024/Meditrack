@@ -71,7 +71,16 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     api.get('dashboard-stock-alerts/')
       .then(response => {
-        const normalizedAlerts = response.data.map((alert: any) => ({
+        const normalizedAlerts = response.data.map((alert: { 
+          id: number; 
+          name: string; 
+          quantity: number; 
+          reorderLevel: number; 
+          expiryDate: string; 
+          daysToExpiry: number; 
+          isLowStock: boolean; 
+          isExpiringSoon: boolean; 
+        }) => ({
           id: alert.id,
           name: alert.name,
           quantity: alert.quantity,
@@ -91,7 +100,7 @@ const Dashboard: React.FC = () => {
   // data for dashboard sales chart
   const [salesData, setSalesData] = useState([]);
 
-useEffect(() => {
+  useEffect(() => {
   api.get('sales/chart-data/')
     .then(response => {
       setSalesData(response.data);
@@ -99,9 +108,24 @@ useEffect(() => {
     .catch(error => {
       console.error('Error fetching sales data:', error);
     });
+  }, []);
+
+
+  const [topProducts, setTopProducts] = useState([]);
+
+// Inside useEffect hooks
+useEffect(() => {
+  api.get('top-selling-products/')
+    .then(response => {
+      setTopProducts(response.data);
+    })
+    .catch(error => {
+      console.error('Error fetching top selling products:', error);
+    });
 }, []);
 
   
+
   
 
 
@@ -160,8 +184,8 @@ useEffect(() => {
         <div className="lg:col-span-2">
           <RecentOrders orders={recentOrders} />
         </div>
-        <div>
-          <TopSellingProducts topProducts={[]} />
+        <div className="flex flex-col h-full">
+          <TopSellingProducts topProducts={topProducts} />
         </div>
       </div>
     </div>

@@ -181,8 +181,10 @@ useEffect(() => {
 
       {/* Recent orders and top products */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RecentOrders orders={recentOrders} />
+        <div className="lg:col-span-2 flex flex-col h-[320px] overflow-hidden"> {/* Shared height */}
+          <div className="overflow-y-auto pr-2">
+            <RecentOrders orders={recentOrders} />
+          </div>
         </div>
         <div className="flex flex-col h-full">
           <TopSellingProducts topProducts={topProducts} />

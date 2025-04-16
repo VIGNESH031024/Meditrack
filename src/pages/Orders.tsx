@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Filter, Search } from "lucide-react";
 import OrderForm from "../components/orders/OrderForm";
 import api from "../api/axiosInstance"; // Import API utility
@@ -74,18 +74,30 @@ const Orders: React.FC = () => {
   };
 
   // Function to add a new order
-  const handleAddOrder = (order: Partial<Order>) => {
-    api.post("/orders/", order)
-      .then((response) => {
-        setOrders([...orders, response.data]); // Update the order list
-        setShowAddForm(false);
-      })
-      .catch((error) => {
-        console.error("Error adding order:", error);
-        setError("Failed to add order.");
-      });
-  };
+  const navigate = useNavigate(); // import this from react-router-dom
 
+  const handleAddOrder = async (orderData: any) => {
+    try {
+      console.log("Sending order data:", orderData);
+      
+      // Use the correct endpoint path - don't transform the items structure
+      const response = await api.post("orders/frontend-create/", orderData);
+      
+      const newOrder = response.data;
+      setOrders([...orders, newOrder]);
+      setShowAddForm(false);
+      navigate(`/orders/${newOrder.order_id}`); // Use order_id as returned from backend
+    } catch (error) {
+      console.error("Full error details:", error);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        setError(`Failed to add order: ${error.response.data.error || JSON.stringify(error.response.data)}`);
+      } else {
+        setError("Failed to add order. Please try again.");
+      }
+    }
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

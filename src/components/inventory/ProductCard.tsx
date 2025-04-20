@@ -11,7 +11,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isLowStock = product.quantity <= product.reorderLevel;
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/50 cursor-pointer border border-gray-200 ">
       <div className="h-48 overflow-hidden relative">
         <img
           src={

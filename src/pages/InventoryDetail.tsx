@@ -105,7 +105,7 @@ if (error || !product) return <p className="text-red-500">Product not found.</p>
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/inventory')}
@@ -136,7 +136,7 @@ if (error || !product) return <p className="text-red-500">Product not found.</p>
       </div>
       
       {isEditing ? (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 ">
           <h2 className="text-xl font-medium text-gray-900 mb-4">Edit Product</h2>
           <ProductForm
             product={product}
